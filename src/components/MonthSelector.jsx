@@ -10,6 +10,8 @@ import { CalendarDayPhrases } from '../defaultPhrases';
 // import getPhrasePropTypes from '../utils/getPhrasePropTypes';
 
 const propTypes = forbidExtraProps({
+  ...withStylesPropTypes,
+
   month: momentPropTypes.momentObj,
   onMonthSelect: PropTypes.func,
   onYearSelect: PropTypes.func,
@@ -33,9 +35,10 @@ class MonthSelector extends React.Component {
   }
 
   render() {
-    const { month, onMonthSelect, onYearSelect } = this.props;
+    const {
+      month, onMonthSelect, onYearSelect, styles,
+    } = this.props;
 
-    const className = cx('MonthSelector');
     const selectableYears = [];
     const currentYear = month.get('year');
     for (let i = 50; i >= 1; i -= 1) {
@@ -47,11 +50,11 @@ class MonthSelector extends React.Component {
     }
 
     return (
-      <div className={className}>
+      <div {...css(styles.MonthSelector)}>
         <select
           onChange={e => onMonthSelect(month, e.target.value)}
           value={month.get('month')}
-          className="MonthSelector__month_select"
+          {...css(styles.MonthSelector__month_select)}
         >
           <option value={0}>January</option>
           <option value={1}>February</option>
@@ -82,7 +85,10 @@ class MonthSelector extends React.Component {
   }
 }
 
-export default withStyles(({ reactDates: { color, font, zIndex } }) => ({}))(MonthSelector);
+export default withStyles(({ reactDates: { color, font, zIndex } }) => ({
+  MonthSelector: {},
+  MonthSelector__month_select: {},
+}))(MonthSelector);
 
 MonthSelector.propTypes = propTypes;
 MonthSelector.defaultProps = defaultProps;
