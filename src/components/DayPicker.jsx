@@ -45,12 +45,15 @@ const MONTH_PADDING = 23;
 const DAY_PICKER_PADDING = 9;
 const PREV_TRANSITION = 'prev';
 const NEXT_TRANSITION = 'next';
+const MONTH_SELECTION_TRANSITION = 'month_selection';
+const YEAR_SELECTION_TRANSITION = 'year_selection';
 
 const propTypes = forbidExtraProps({
   ...withStylesPropTypes,
 
   // calendar presentation props
   enableOutsideDays: PropTypes.bool,
+  enableDropdowns: PropTypes.bool,
   numberOfMonths: PropTypes.number,
   orientation: ScrollableOrientationShape,
   withPortal: PropTypes.bool,
@@ -72,6 +75,8 @@ const propTypes = forbidExtraProps({
   navNext: PropTypes.node,
   onPrevMonthClick: PropTypes.func,
   onNextMonthClick: PropTypes.func,
+  onMonthChange: PropTypes.func,
+  onYearChange: PropTypes.func,
   onMultiplyScrollableMonths: PropTypes.func, // VERTICAL_SCROLLABLE daypickers only
 
   // month props
@@ -122,6 +127,8 @@ export const defaultProps = {
   navNext: null,
   onPrevMonthClick() {},
   onNextMonthClick() {},
+  onMonthChange() {},
+  onYearChange() {},
   onMultiplyScrollableMonths() {},
 
   // month props
@@ -198,6 +205,8 @@ class DayPicker extends React.Component {
     this.setContainerRef = this.setContainerRef.bind(this);
     this.setTransitionContainerRef = this.setTransitionContainerRef.bind(this);
     this.setCalendarMonthHeights = this.setCalendarMonthHeights.bind(this);
+    this.onMonthChange = this.onMonthChange.bind(this);
+    this.onYearChange = this.onYearChange.bind(this);
   }
 
   componentDidMount() {
@@ -394,6 +403,30 @@ class DayPicker extends React.Component {
     }
   }
 
+  onMonthChange(currentMonth) {
+    // Translation value is a hack to force an invisible transition that
+    // properly rerenders the CalendarMonthGrid
+    this.setState({
+      monthTransition: MONTH_SELECTION_TRANSITION,
+      translationValue: 0.00001,
+      focusedDate: null,
+      nextFocusedDate: currentMonth,
+      currentMonth,
+    });
+  }
+
+  onYearChange(currentMonth) {
+    // Translation value is a hack to force an invisible transition that
+    // properly rerenders the CalendarMonthGrid
+    this.setState({
+      monthTransition: YEAR_SELECTION_TRANSITION,
+      translationValue: 0.0001,
+      focusedDate: null,
+      nextFocusedDate: currentMonth,
+      currentMonth,
+    });
+  }
+
   onPrevMonthClick(nextFocusedDate, e) {
     const { numberOfMonths, isRTL } = this.props;
     const { calendarMonthWidth } = this.state;
@@ -553,6 +586,8 @@ class DayPicker extends React.Component {
     const {
       onPrevMonthClick,
       onNextMonthClick,
+      onMonthChange,
+      onYearChange,
       isRTL,
     } = this.props;
 
@@ -574,6 +609,10 @@ class DayPicker extends React.Component {
     } else if (monthTransition === NEXT_TRANSITION) {
       if (onNextMonthClick) onNextMonthClick();
       newMonth.add(1, 'month');
+    } else if (monthTransition === MONTH_SELECTION_TRANSITION) {
+      if (onMonthChange) onMonthChange(newMonth);
+    } else if (monthTransition === YEAR_SELECTION_TRANSITION) {
+      if (onYearChange) onYearChange(newMonth);
     }
 
     let newFocusedDate = null;
@@ -728,6 +767,7 @@ class DayPicker extends React.Component {
 
     const {
       enableOutsideDays,
+      enableDropdowns,
       numberOfMonths,
       orientation,
       modifiers,
@@ -888,6 +928,7 @@ class DayPicker extends React.Component {
                   setCalendarMonthHeights={this.setCalendarMonthHeights}
                   transformValue={transformValue}
                   enableOutsideDays={enableOutsideDays}
+                  enableDropdowns={enableDropdowns}
                   firstVisibleMonthIndex={firstVisibleMonthIndex}
                   initialMonth={currentMonth}
                   isAnimating={isCalendarMonthGridAnimating}
@@ -897,6 +938,8 @@ class DayPicker extends React.Component {
                   onDayClick={onDayClick}
                   onDayMouseEnter={onDayMouseEnter}
                   onDayMouseLeave={onDayMouseLeave}
+                  onMonthChange={this.onMonthChange}
+                  onYearChange={this.onYearChange}
                   renderMonth={renderMonth}
                   renderCalendarDay={renderCalendarDay}
                   renderDayContents={renderDayContents}
